@@ -226,11 +226,11 @@ class ClaudeAPIProcessor(BaseProcessor):
                     and account.cookie_value
                 ):
                     logger.warning(
-                        f"{response.status_code} {'token revoked' if is_token_revoked else 'authentication error'} "
+                        f"{response.status_code} {'token revoked' if is_token_revoked else 'authentication'} error "
                         f"for account {account.organization_uuid[:8]}..., "
                         "attempting re-authentication with cookie"
                     )
-                    
+
                     success = await self._try_reauthenticate_account(account)
                     if success:
                         logger.info(

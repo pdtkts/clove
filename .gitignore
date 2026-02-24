@@ -210,4 +210,4 @@ __marimo__/
 /data/
 
 # Built frontend static files
-app/static/
+app/static/repomix-output.xml
