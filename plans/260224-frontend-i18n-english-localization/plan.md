@@ -1,7 +1,7 @@
 ---
 title: "Frontend i18n with react-i18next (English default)"
 description: "Add internationalization to Clove frontend, replacing ~122 hardcoded Chinese strings with t() calls, defaulting to English"
-status: complete
+status: completed
 priority: P1
 effort: 3h
 branch: feat/frontend-english-localization
