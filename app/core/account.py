@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 from app.core.exceptions import (
     ClaudeAuthenticationError,
+    ClaudeHttpError,
     ClaudeRateLimitedError,
     OAuthAuthenticationNotAllowedError,
     OrganizationDisabledError,
@@ -112,6 +113,18 @@ class Account:
             else:
                 self.status = AccountStatus.INVALID
             self.save()
+
+        # Handle ClaudeHttpError for auth-related failures (401/403)
+        # After re-auth retry fails, degrade or invalidate account
+        if exc_type is ClaudeHttpError and isinstance(exc_val, ClaudeHttpError):
+            status_code = exc_val.context.get("status_code")
+            if status_code in (401, 403):
+                if self.auth_type == AuthType.BOTH:
+                    self.auth_type = AuthType.COOKIE_ONLY
+                    self.oauth_token = None
+                else:
+                    self.status = AccountStatus.INVALID
+                self.save()
 
         return False
 
