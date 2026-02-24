@@ -209,15 +209,25 @@ class ClaudeAPIProcessor(BaseProcessor):
                 ):
                     raise OAuthAuthenticationNotAllowedError()
 
-                # Handle 401 authentication_error - try re-auth with cookie
-                if (
+                # Handle 401 authentication_error or 403 permission_error (token revoked)
+                # Both indicate invalid/revoked OAuth token - try re-auth with cookie
+                is_auth_error = (
                     response.status_code == 401
                     and error_data.get("error", {}).get("type") == "authentication_error"
+                )
+                is_token_revoked = (
+                    response.status_code == 403
+                    and error_data.get("error", {}).get("type") == "permission_error"
+                )
+
+                if (
+                    (is_auth_error or is_token_revoked)
                     and not retried
                     and account.cookie_value
                 ):
                     logger.warning(
-                        f"401 authentication error for account {account.organization_uuid[:8]}..., "
+                        f"{response.status_code} {'token revoked' if is_token_revoked else 'authentication error'} "
+                        f"for account {account.organization_uuid[:8]}..., "
                         "attempting re-authentication with cookie"
                     )
                     
