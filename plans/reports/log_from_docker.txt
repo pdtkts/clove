@@ -1,0 +1,21 @@
+2026-02-25 00:35:47.703 | INFO     | app.main:lifespan:21 - Starting Clove...
+
+2026-02-25 00:35:47.754 | INFO     | app.services.account:load_accounts:504 - Loaded 1 accounts from /data/accounts.json
+
+2026-02-25 00:35:47.755 | INFO     | app.services.session:start_cleanup_task:133 - Started session cleanup task
+
+2026-02-25 00:35:47.755 | INFO     | app.services.tool_call:start_cleanup_task:95 - Started tool call cleanup task
+
+2026-02-25 00:35:47.756 | INFO     | app.services.cache:start_cleanup_task:198 - Started cache cleanup task
+
+INFO:     Application startup complete.
+
+2026-02-25 00:35:47.757 | INFO     | app.services.account:_refresh_account_token:374 - Refreshing OAuth token for account: 44119bda...
+
+INFO:     Uvicorn running on http://0.0.0.0:5201⁠ (Press CTRL+C to quit)
+
+2026-02-25 00:35:49.034 | ERROR    | app.services.oauth:refresh_access_token:262 - Error refreshing token: ClaudeHttpError(error_code=503130, message_key='claudeClient.httpError', status_code=400, context={'url': 'https://console.anthropic.com/v1/oauth/token', 'status_code': 400, 'error_type': 'Unknown', 'error_message': 'Error occurred during request to Claude.ai'})
+
+2026-02-25 00:35:49.035 | WARNING  | app.services.account:_refresh_account_token:384 - Failed to refresh OAuth token for account: 44119bda...
+
+2026-02-25 00:35:49.040 | INFO     | app.services.account:save_accounts:474 - Saved 1 accounts to /data/accounts.json

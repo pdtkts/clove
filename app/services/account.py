@@ -40,6 +40,7 @@ class AccountManager:
             set
         )  # organization_uuid -> set of session_ids
         self._account_task: Optional[asyncio.Task] = None
+        self._refreshing_accounts: Set[str] = set()
         self._max_sessions_per_account = settings.max_sessions_per_cookie
         self._account_task_interval = settings.account_task_interval
 
@@ -367,7 +368,18 @@ class AccountManager:
                 and account.oauth_token.expires_at
             ):
                 if account.oauth_token.expires_at - current_timestamp < 300:
-                    asyncio.create_task(self._refresh_account_token(account))
+                    if account.organization_uuid not in self._refreshing_accounts:
+                        self._refreshing_accounts.add(account.organization_uuid)
+                        asyncio.create_task(
+                            self._refresh_account_token_with_guard(account)
+                        )
+
+    async def _refresh_account_token_with_guard(self, account: Account) -> None:
+        """Guard wrapper that ensures _refreshing_accounts is cleaned up."""
+        try:
+            await self._refresh_account_token(account)
+        finally:
+            self._refreshing_accounts.discard(account.organization_uuid)
 
     async def _refresh_account_token(self, account: Account) -> None:
         """Refresh OAuth token for an account."""

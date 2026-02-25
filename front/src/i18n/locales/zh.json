@@ -59,7 +59,10 @@
     "openMenu": "打开菜单",
     "statusValid": "正常",
     "statusInvalid": "无效",
-    "statusRateLimited": "限流中"
+    "statusRateLimited": "限流中",
+    "reauthenticate": "重新认证",
+    "reauthenticating": "重新认证中...",
+    "reauthenticateSuccess": "OAuth 重新认证成功"
   },
   "settings": {
     "title": "应用设置",

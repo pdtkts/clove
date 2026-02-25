@@ -59,7 +59,10 @@
     "openMenu": "Open menu",
     "statusValid": "Valid",
     "statusInvalid": "Invalid",
-    "statusRateLimited": "Rate Limited"
+    "statusRateLimited": "Rate Limited",
+    "reauthenticate": "Re-authenticate",
+    "reauthenticating": "Re-authenticating...",
+    "reauthenticateSuccess": "OAuth re-authentication successful"
   },
   "settings": {
     "title": "Settings",

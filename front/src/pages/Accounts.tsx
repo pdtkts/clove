@@ -14,7 +14,9 @@ import {
     ChevronRight,
     KeyRound,
     FileText,
+    RefreshCw,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import type { AccountResponse } from '../api/types'
 import { accountsApi } from '../api/client'
 import { AccountModal } from '../components/AccountModal'
@@ -48,6 +50,7 @@ export function Accounts() {
     const [editingAccount, setEditingAccount] = useState<AccountResponse | null>(null)
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [accountToDelete, setAccountToDelete] = useState<string | null>(null)
+    const [reauthenticating, setReauthenticating] = useState<Set<string>>(new Set())
     const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set())
     const isMobile = useIsMobile()
     const { t, i18n } = useTranslation()
@@ -90,6 +93,23 @@ export function Accounts() {
     const handleAdd = () => {
         setEditingAccount(null)
         setModalOpen(true)
+    }
+
+    const handleReauthenticate = async (organizationUuid: string) => {
+        setReauthenticating(prev => new Set(prev).add(organizationUuid))
+        try {
+            await accountsApi.reauthenticate(organizationUuid)
+            toast.success(t('accounts.reauthenticateSuccess'))
+            await loadAccounts()
+        } catch {
+            // Error toast handled by axios interceptor
+        } finally {
+            setReauthenticating(prev => {
+                const next = new Set(prev)
+                next.delete(organizationUuid)
+                return next
+            })
+        }
     }
 
     const handleModalClose = () => {
@@ -237,6 +257,20 @@ export function Accounts() {
                                     <Pencil className='mr-2 h-4 w-4' />
                                     {t('common.edit')}
                                 </Button>
+                                {account.cookie_value && (
+                                    <Button
+                                        size='sm'
+                                        variant='outline'
+                                        className='flex-1'
+                                        disabled={reauthenticating.has(account.organization_uuid)}
+                                        onClick={() => handleReauthenticate(account.organization_uuid)}
+                                    >
+                                        <RefreshCw className={`mr-2 h-4 w-4 ${reauthenticating.has(account.organization_uuid) ? 'animate-spin' : ''}`} />
+                                        {reauthenticating.has(account.organization_uuid)
+                                            ? t('accounts.reauthenticating')
+                                            : t('accounts.reauthenticate')}
+                                    </Button>
+                                )}
                                 <Button
                                     size='sm'
                                     variant='outline'
@@ -468,6 +502,17 @@ export function Accounts() {
                                                         <Pencil className='mr-2 h-4 w-4' />
                                                         {t('common.edit')}
                                                     </DropdownMenuItem>
+                                                    {account.cookie_value && (
+                                                        <DropdownMenuItem
+                                                            onClick={() => handleReauthenticate(account.organization_uuid)}
+                                                            disabled={reauthenticating.has(account.organization_uuid)}
+                                                        >
+                                                            <RefreshCw className={`mr-2 h-4 w-4 ${reauthenticating.has(account.organization_uuid) ? 'animate-spin' : ''}`} />
+                                                            {reauthenticating.has(account.organization_uuid)
+                                                                ? t('accounts.reauthenticating')
+                                                                : t('accounts.reauthenticate')}
+                                                        </DropdownMenuItem>
+                                                    )}
                                                     <DropdownMenuItem
                                                         onClick={() => {
                                                             setAccountToDelete(account.organization_uuid)

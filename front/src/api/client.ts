@@ -57,6 +57,8 @@ export const accountsApi = {
     update: (organizationUuid: string, account: AccountUpdate) =>
         api.put<AccountResponse>(`/api/admin/accounts/${organizationUuid}`, account),
     delete: (organizationUuid: string) => api.delete(`/api/admin/accounts/${organizationUuid}`),
+    reauthenticate: (organizationUuid: string) =>
+        api.post<AccountResponse>(`/api/admin/accounts/${organizationUuid}/reauthenticate`),
     exchangeOAuthCode: (exchangeData: OAuthCodeExchange) =>
         api.post<AccountResponse>('/api/admin/accounts/oauth/exchange', exchangeData),
 }

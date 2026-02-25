@@ -1,3 +1,4 @@
+import asyncio
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -154,6 +155,7 @@ async def update_account(
     account = account_manager._accounts[organization_uuid]
 
     # Update fields if provided
+    cookie_updated = False
     if account_data.cookie_value is not None:
         # Remove old cookie mapping if exists
         if (
@@ -164,6 +166,12 @@ async def update_account(
 
         account.cookie_value = account_data.cookie_value
         account_manager._cookie_to_uuid[account_data.cookie_value] = organization_uuid
+        cookie_updated = True
+
+        # Reset invalid status when cookie is updated
+        if account.status == AccountStatus.INVALID:
+            account.status = AccountStatus.VALID
+            account.resets_at = None
 
     if account_data.oauth_token is not None:
         account.oauth_token = OAuthToken(
@@ -192,6 +200,56 @@ async def update_account(
 
     # Save changes
     account_manager.save_accounts()
+
+    # Trigger OAuth re-authentication when cookie is updated and OAuth is missing/degraded/expired
+    if cookie_updated:
+        needs_oauth_reauth = (
+            not account.oauth_token
+            or account.auth_type == AuthType.COOKIE_ONLY
+            or account.oauth_token.expires_at < time.time()
+        )
+        if needs_oauth_reauth:
+            asyncio.create_task(
+                account_manager._attempt_oauth_authentication(account)
+            )
+
+    return AccountResponse(
+        organization_uuid=organization_uuid,
+        capabilities=account.capabilities,
+        cookie_value=account.cookie_value[:20] + "..."
+        if account.cookie_value
+        else None,
+        status=account.status,
+        auth_type=account.auth_type,
+        preferred_auth=account.preferred_auth,
+        is_pro=account.is_pro,
+        is_max=account.is_max,
+        has_oauth=account.oauth_token is not None,
+        last_used=account.last_used.isoformat(),
+        resets_at=account.resets_at.isoformat() if account.resets_at else None,
+    )
+
+
+@router.post("/{organization_uuid}/reauthenticate", response_model=AccountResponse)
+async def reauthenticate_account(organization_uuid: str, _: AdminAuthDep):
+    """Trigger OAuth re-authentication using existing cookie."""
+    if organization_uuid not in account_manager._accounts:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    account = account_manager._accounts[organization_uuid]
+
+    if not account.cookie_value:
+        raise HTTPException(
+            status_code=400,
+            detail={"code": 400190, "message": "Account has no cookie — cannot re-authenticate"},
+        )
+
+    success = await oauth_authenticator.authenticate_account(account)
+    if not success:
+        raise HTTPException(
+            status_code=502,
+            detail={"code": 502191, "message": "OAuth re-authentication failed — cookie may be expired"},
+        )
 
     return AccountResponse(
         organization_uuid=organization_uuid,
