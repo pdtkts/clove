@@ -103,7 +103,19 @@
     "allowExternalImages": "允许外部图片",
     "allowExternalImagesDesc": "允许反代加载外部图片",
     "preserveChats": "保留聊天记录",
-    "preserveChatsDesc": "保留聊天历史记录以供后续查看"
+    "preserveChatsDesc": "保留聊天历史记录以供后续查看",
+    "networkSettings": "网络设置",
+    "networkSettingsDesc": "配置请求超时和重试行为",
+    "requestTimeout": "请求超时 (秒)",
+    "requestTimeoutDesc": "非流式请求的总超时时间",
+    "connectTimeout": "连接超时 (秒)",
+    "connectTimeoutDesc": "TCP 连接建立超时",
+    "readTimeout": "读取超时 (秒)",
+    "readTimeoutDesc": "流式传输每个数据块的读取超时",
+    "requestRetries": "请求重试次数",
+    "requestRetriesDesc": "失败后的重试次数",
+    "requestRetryInterval": "重试间隔 (秒)",
+    "requestRetryIntervalDesc": "重试之间的等待时间"
   },
   "layout": {
     "dashboard": "仪表板",

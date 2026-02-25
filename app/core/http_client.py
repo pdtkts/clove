@@ -203,12 +203,16 @@ if CURL_CFFI_AVAILABLE:
         def __init__(
             self,
             timeout: int = settings.request_timeout,
+            connect_timeout: int = settings.connect_timeout,
+            read_timeout: int = settings.read_timeout,
             impersonate: str = "chrome",
             proxy: Optional[str] = settings.proxy_url,
             follow_redirects: bool = True,
         ):
+            # curl_cffi only supports single timeout, use the larger value
+            effective_timeout = max(timeout, read_timeout)
             self._session = CurlAsyncSession(
-                timeout=timeout,
+                timeout=effective_timeout,
                 impersonate=impersonate,
                 proxy=proxy,
                 allow_redirects=follow_redirects,
@@ -303,6 +307,8 @@ if RNET_AVAILABLE:
         def __init__(
             self,
             timeout: int = settings.request_timeout,
+            connect_timeout: int = settings.connect_timeout,
+            read_timeout: int = settings.read_timeout,
             impersonate: str = "chrome",
             proxy: Optional[str] = settings.proxy_url,
             follow_redirects: bool = True,
@@ -328,6 +334,8 @@ if RNET_AVAILABLE:
             self._client = RnetClient(
                 emulation=rnet_emulation,
                 timeout=timeout,
+                connect_timeout=connect_timeout,
+                read_timeout=read_timeout,
                 proxies=proxies,
                 allow_redirects=follow_redirects,
             )
@@ -440,12 +448,18 @@ if HTTPX_AVAILABLE:
         def __init__(
             self,
             timeout: int = settings.request_timeout,
+            connect_timeout: int = settings.connect_timeout,
+            read_timeout: int = settings.read_timeout,
             impersonate: str = "chrome",
             proxy: Optional[str] = settings.proxy_url,
             follow_redirects: bool = True,
         ):
             self._client = httpx.AsyncClient(
-                timeout=timeout,
+                timeout=httpx.Timeout(
+                    timeout=float(timeout),
+                    connect=float(connect_timeout),
+                    read=float(read_timeout),
+                ),
                 proxy=proxy,
                 follow_redirects=follow_redirects,
             )
@@ -529,6 +543,8 @@ if HTTPX_AVAILABLE:
 
 def create_session(
     timeout: int = settings.request_timeout,
+    connect_timeout: int = settings.connect_timeout,
+    read_timeout: int = settings.read_timeout,
     impersonate: str = "chrome",
     proxy: Optional[str] = settings.proxy_url,
     follow_redirects: bool = True,
@@ -541,6 +557,8 @@ def create_session(
         logger.debug("Using rnet as HTTP client")
         return RnetAsyncSession(
             timeout=timeout,
+            connect_timeout=connect_timeout,
+            read_timeout=read_timeout,
             impersonate=impersonate,
             proxy=proxy,
             follow_redirects=follow_redirects,
@@ -549,6 +567,8 @@ def create_session(
         logger.debug("Using curl_cffi as HTTP client")
         return CurlAsyncSessionWrapper(
             timeout=timeout,
+            connect_timeout=connect_timeout,
+            read_timeout=read_timeout,
             impersonate=impersonate,
             proxy=proxy,
             follow_redirects=follow_redirects,
@@ -557,6 +577,8 @@ def create_session(
         logger.debug("Using httpx as HTTP client (rnet and curl_cffi not available)")
         return HttpxAsyncSession(
             timeout=timeout,
+            connect_timeout=connect_timeout,
+            read_timeout=read_timeout,
             impersonate=impersonate,
             proxy=proxy,
             follow_redirects=follow_redirects,

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Key, RefreshCw, Sliders, Globe, Shield, Check, AlertCircle, Loader2, Trash2, Copy, Eye, EyeOff } from 'lucide-react'
+import { Key, RefreshCw, Sliders, Globe, Shield, Check, AlertCircle, Loader2, Trash2, Copy, Eye, EyeOff, Timer } from 'lucide-react'
 import type { SettingsRead, SettingsUpdate } from '../api/types'
 import { settingsApi } from '../api/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -505,6 +505,85 @@ export function Settings() {
                                 onBlur={() => handleFieldChange(settings)}
                                 placeholder={t('settings.proxyUrlPlaceholder')}
                             />
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Network Settings */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className='flex items-center gap-2'>
+                        <Timer className='h-5 w-5' />
+                        {t('settings.networkSettings')}
+                    </CardTitle>
+                    <CardDescription>{t('settings.networkSettingsDesc')}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className='grid gap-4 md:grid-cols-3'>
+                        <div className='space-y-2'>
+                            <Label htmlFor='request-timeout'>{t('settings.requestTimeout')}</Label>
+                            <Input
+                                id='request-timeout'
+                                type='number'
+                                min={1}
+                                value={settings.request_timeout}
+                                onChange={e => updateSettings({ ...settings, request_timeout: parseInt(e.target.value) || 60 })}
+                                onBlur={() => handleFieldChange(settings)}
+                            />
+                            <p className='text-xs text-muted-foreground'>{t('settings.requestTimeoutDesc')}</p>
+                        </div>
+
+                        <div className='space-y-2'>
+                            <Label htmlFor='connect-timeout'>{t('settings.connectTimeout')}</Label>
+                            <Input
+                                id='connect-timeout'
+                                type='number'
+                                min={1}
+                                value={settings.connect_timeout}
+                                onChange={e => updateSettings({ ...settings, connect_timeout: parseInt(e.target.value) || 10 })}
+                                onBlur={() => handleFieldChange(settings)}
+                            />
+                            <p className='text-xs text-muted-foreground'>{t('settings.connectTimeoutDesc')}</p>
+                        </div>
+
+                        <div className='space-y-2'>
+                            <Label htmlFor='read-timeout'>{t('settings.readTimeout')}</Label>
+                            <Input
+                                id='read-timeout'
+                                type='number'
+                                min={1}
+                                value={settings.read_timeout}
+                                onChange={e => updateSettings({ ...settings, read_timeout: parseInt(e.target.value) || 300 })}
+                                onBlur={() => handleFieldChange(settings)}
+                            />
+                            <p className='text-xs text-muted-foreground'>{t('settings.readTimeoutDesc')}</p>
+                        </div>
+
+                        <div className='space-y-2'>
+                            <Label htmlFor='request-retries'>{t('settings.requestRetries')}</Label>
+                            <Input
+                                id='request-retries'
+                                type='number'
+                                min={0}
+                                value={settings.request_retries}
+                                onChange={e => updateSettings({ ...settings, request_retries: parseInt(e.target.value) || 3 })}
+                                onBlur={() => handleFieldChange(settings)}
+                            />
+                            <p className='text-xs text-muted-foreground'>{t('settings.requestRetriesDesc')}</p>
+                        </div>
+
+                        <div className='space-y-2'>
+                            <Label htmlFor='request-retry-interval'>{t('settings.requestRetryInterval')}</Label>
+                            <Input
+                                id='request-retry-interval'
+                                type='number'
+                                min={0}
+                                value={settings.request_retry_interval}
+                                onChange={e => updateSettings({ ...settings, request_retry_interval: parseInt(e.target.value) || 1 })}
+                                onBlur={() => handleFieldChange(settings)}
+                            />
+                            <p className='text-xs text-muted-foreground'>{t('settings.requestRetryIntervalDesc')}</p>
                         </div>
                     </div>
                 </CardContent>

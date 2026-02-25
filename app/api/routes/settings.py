@@ -26,6 +26,12 @@ class SettingsRead(BaseModel):
     padtxt_length: int
     allow_external_images: bool
 
+    request_timeout: int
+    connect_timeout: int
+    read_timeout: int
+    request_retries: int
+    request_retry_interval: int
+
     preserve_chats: bool
 
     oauth_client_id: str
@@ -51,6 +57,12 @@ class SettingsUpdate(BaseModel):
     assistant_name: str | None = None
     padtxt_length: int | None = None
     allow_external_images: bool | None = None
+
+    request_timeout: int | None = None
+    connect_timeout: int | None = None
+    read_timeout: int | None = None
+    request_retries: int | None = None
+    request_retry_interval: int | None = None
 
     preserve_chats: bool | None = None
 

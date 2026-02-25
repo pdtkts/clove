@@ -103,7 +103,19 @@
     "allowExternalImages": "Allow External Images",
     "allowExternalImagesDesc": "Allow the reverse proxy to load external images",
     "preserveChats": "Preserve Chats",
-    "preserveChatsDesc": "Keep chat history for later viewing"
+    "preserveChatsDesc": "Keep chat history for later viewing",
+    "networkSettings": "Network Settings",
+    "networkSettingsDesc": "Configure request timeouts and retry behavior",
+    "requestTimeout": "Request Timeout (s)",
+    "requestTimeoutDesc": "Total timeout for non-streaming requests",
+    "connectTimeout": "Connect Timeout (s)",
+    "connectTimeoutDesc": "TCP connection establishment timeout",
+    "readTimeout": "Read Timeout (s)",
+    "readTimeoutDesc": "Per-chunk read timeout (streaming)",
+    "requestRetries": "Request Retries",
+    "requestRetriesDesc": "Number of retry attempts on failure",
+    "requestRetryInterval": "Retry Interval (s)",
+    "requestRetryIntervalDesc": "Wait time between retries"
   },
   "layout": {
     "dashboard": "Dashboard",

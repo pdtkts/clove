@@ -54,6 +54,11 @@ export interface SettingsRead {
     assistant_name: string
     padtxt_length: number
     allow_external_images: boolean
+    request_timeout: number
+    connect_timeout: number
+    read_timeout: number
+    request_retries: number
+    request_retry_interval: number
     preserve_chats: boolean
     oauth_client_id: string
     oauth_authorize_url: string
@@ -73,6 +78,11 @@ export interface SettingsUpdate {
     assistant_name?: string
     padtxt_length?: number
     allow_external_images?: boolean
+    request_timeout?: number
+    connect_timeout?: number
+    read_timeout?: number
+    request_retries?: number
+    request_retry_interval?: number
     preserve_chats?: boolean
     oauth_client_id?: string
     oauth_authorize_url?: string
