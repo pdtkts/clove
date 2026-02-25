@@ -18,6 +18,8 @@ try:
     import rnet
     from rnet import Client as RnetClient, Method as RnetMethod
     from rnet.exceptions import RequestError as RnetRequestError
+    from rnet.exceptions import TimeoutError as RnetTimeoutError
+    from rnet.exceptions import BodyError as RnetBodyError
 
     RNET_AVAILABLE = True
 except ImportError:
@@ -202,7 +204,7 @@ if CURL_CFFI_AVAILABLE:
 
         def __init__(
             self,
-            timeout: int = settings.request_timeout,
+            timeout: Optional[int] = settings.request_timeout,
             connect_timeout: int = settings.connect_timeout,
             read_timeout: int = settings.read_timeout,
             impersonate: str = "chrome",
@@ -210,7 +212,10 @@ if CURL_CFFI_AVAILABLE:
             follow_redirects: bool = True,
         ):
             # curl_cffi only supports single timeout, use the larger value
-            effective_timeout = max(timeout, read_timeout)
+            if timeout is None:
+                effective_timeout = read_timeout
+            else:
+                effective_timeout = max(timeout, read_timeout)
             self._session = CurlAsyncSession(
                 timeout=effective_timeout,
                 impersonate=impersonate,
@@ -306,7 +311,7 @@ if RNET_AVAILABLE:
 
         def __init__(
             self,
-            timeout: int = settings.request_timeout,
+            timeout: Optional[int] = settings.request_timeout,
             connect_timeout: int = settings.connect_timeout,
             read_timeout: int = settings.read_timeout,
             impersonate: str = "chrome",
@@ -343,7 +348,9 @@ if RNET_AVAILABLE:
         @retry(
             stop=stop_after_attempt(settings.request_retries),
             wait=wait_fixed(settings.request_retry_interval),
-            retry=retry_if_exception_type(RnetRequestError),
+            retry=retry_if_exception_type(
+                (RnetRequestError, RnetTimeoutError, RnetBodyError)
+            ),
             before_sleep=log_before_sleep,
             reraise=True,
         )
@@ -447,7 +454,7 @@ if HTTPX_AVAILABLE:
 
         def __init__(
             self,
-            timeout: int = settings.request_timeout,
+            timeout: Optional[int] = settings.request_timeout,
             connect_timeout: int = settings.connect_timeout,
             read_timeout: int = settings.read_timeout,
             impersonate: str = "chrome",
@@ -456,7 +463,7 @@ if HTTPX_AVAILABLE:
         ):
             self._client = httpx.AsyncClient(
                 timeout=httpx.Timeout(
-                    timeout=float(timeout),
+                    timeout=float(timeout) if timeout is not None else None,
                     connect=float(connect_timeout),
                     read=float(read_timeout),
                 ),
@@ -542,7 +549,7 @@ if HTTPX_AVAILABLE:
 
 
 def create_session(
-    timeout: int = settings.request_timeout,
+    timeout: Optional[int] = settings.request_timeout,
     connect_timeout: int = settings.connect_timeout,
     read_timeout: int = settings.read_timeout,
     impersonate: str = "chrome",

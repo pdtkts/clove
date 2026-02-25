@@ -166,9 +166,11 @@ class ClaudeAPIProcessor(BaseProcessor):
                 context.original_request,
             )
 
+            # timeout=None disables overall request timeout for streaming.
+            # Per-phase protection via connect_timeout and read_timeout.
             session = create_session(
                 proxy=settings.proxy_url,
-                timeout=settings.request_timeout,
+                timeout=None,
                 impersonate="chrome",
                 follow_redirects=False,
             )
