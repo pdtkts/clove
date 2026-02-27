@@ -149,7 +149,7 @@ class ClaudeHttpError(AppError):
             message_key="claudeClient.httpError",
             status_code=status_code,
             context=_context,
-            retryable=True,
+            retryable=False,
         )
 
 
@@ -260,7 +260,7 @@ class ClaudeStreamingError(AppError):
             message_key="processors.nonStreamingResponseProcessor.streamingError",
             status_code=503,
             context=_context,
-            retryable=True,
+            retryable=False,
         )
 
 

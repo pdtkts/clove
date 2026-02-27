@@ -94,9 +94,9 @@ class Settings(BaseSettings):
         description="Default language code for translations",
     )
     retry_attempts: int = Field(
-        default=3,
+        default=1,
         env="RETRY_ATTEMPTS",
-        description="Number of retry attempts for failed requests",
+        description="Number of retry attempts for failed requests (1 = no retry)",
     )
     retry_interval: int = Field(
         default=1,
@@ -154,7 +154,7 @@ class Settings(BaseSettings):
     request_timeout: int = Field(default=60, env="REQUEST_TIMEOUT")
     connect_timeout: int = Field(default=10, env="CONNECT_TIMEOUT")
     read_timeout: int = Field(default=300, env="READ_TIMEOUT")
-    request_retries: int = Field(default=3, env="REQUEST_RETRIES")
+    request_retries: int = Field(default=1, env="REQUEST_RETRIES")
     request_retry_interval: int = Field(default=1, env="REQUEST_RETRY_INTERVAL")
 
     # Feature flags
