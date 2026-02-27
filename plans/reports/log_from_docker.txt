@@ -1,21 +1,102 @@
-2026-02-25 00:35:47.703 | INFO     | app.main:lifespan:21 - Starting Clove...
 
-2026-02-25 00:35:47.754 | INFO     | app.services.account:load_accounts:504 - Loaded 1 accounts from /data/accounts.json
+  File "/app/.venv/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
 
-2026-02-25 00:35:47.755 | INFO     | app.services.session:start_cleanup_task:133 - Started session cleanup task
+    return await self.app(scope, receive, send)
 
-2026-02-25 00:35:47.755 | INFO     | app.services.tool_call:start_cleanup_task:95 - Started tool call cleanup task
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-2026-02-25 00:35:47.756 | INFO     | app.services.cache:start_cleanup_task:198 - Started cache cleanup task
+  File "/app/.venv/lib/python3.11/site-packages/fastapi/applications.py", line 1139, in __call__
 
-INFO:     Application startup complete.
+    await super().__call__(scope, receive, send)
 
-2026-02-25 00:35:47.757 | INFO     | app.services.account:_refresh_account_token:374 - Refreshing OAuth token for account: 44119bda...
+  File "/app/.venv/lib/python3.11/site-packages/starlette/applications.py", line 107, in __call__
 
-INFO:     Uvicorn running on http://0.0.0.0:5201⁠ (Press CTRL+C to quit)
+    await self.middleware_stack(scope, receive, send)
 
-2026-02-25 00:35:49.034 | ERROR    | app.services.oauth:refresh_access_token:262 - Error refreshing token: ClaudeHttpError(error_code=503130, message_key='claudeClient.httpError', status_code=400, context={'url': 'https://console.anthropic.com/v1/oauth/token', 'status_code': 400, 'error_type': 'Unknown', 'error_message': 'Error occurred during request to Claude.ai'})
+  File "/app/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py", line 186, in __call__
 
-2026-02-25 00:35:49.035 | WARNING  | app.services.account:_refresh_account_token:384 - Failed to refresh OAuth token for account: 44119bda...
+    raise exc
 
-2026-02-25 00:35:49.040 | INFO     | app.services.account:save_accounts:474 - Saved 1 accounts to /data/accounts.json
+  File "/app/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+
+    await self.app(scope, receive, _send)
+
+  File "/app/.venv/lib/python3.11/site-packages/starlette/middleware/cors.py", line 85, in __call__
+
+    await self.app(scope, receive, send)
+
+  File "/app/.venv/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+
+  File "/app/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+
+    raise exc
+
+  File "/app/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+
+    await app(scope, receive, sender)
+
+  File "/app/.venv/lib/python3.11/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+
+    await self.app(scope, receive, send)
+
+  File "/app/.venv/lib/python3.11/site-packages/starlette/routing.py", line 716, in __call__
+
+    await self.middleware_stack(scope, receive, send)
+
+  File "/app/.venv/lib/python3.11/site-packages/starlette/routing.py", line 736, in app
+
+    await route.handle(scope, receive, send)
+
+  File "/app/.venv/lib/python3.11/site-packages/starlette/routing.py", line 290, in handle
+
+    await self.app(scope, receive, send)
+
+  File "/app/.venv/lib/python3.11/site-packages/fastapi/routing.py", line 120, in app
+
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+
+  File "/app/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+
+    raise exc
+
+  File "/app/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+
+    await app(scope, receive, sender)
+
+  File "/app/.venv/lib/python3.11/site-packages/fastapi/routing.py", line 107, in app
+
+    await response(scope, receive, send)
+
+  File "/app/.venv/lib/python3.11/site-packages/starlette/responses.py", line 269, in __call__
+
+    with collapse_excgroups():
+
+  File "/usr/local/lib/python3.11/contextlib.py", line 158, in __exit__
+
+    self.gen.throw(typ, value, traceback)
+
+  File "/app/.venv/lib/python3.11/site-packages/starlette/_utils.py", line 85, in collapse_excgroups
+
+    raise exc
+
+  File "/app/.venv/lib/python3.11/site-packages/starlette/responses.py", line 273, in wrap
+
+    await func()
+
+  File "/app/.venv/lib/python3.11/site-packages/starlette/responses.py", line 253, in stream_response
+
+    async for chunk in self.body_iterator:
+
+  File "/app/app/processors/claude_ai/claude_api_processor.py", line 115, in stream_response
+
+    async for chunk in response.aiter_bytes():
+
+  File "/app/app/core/http_client.py", line 164, in aiter_bytes
+
+    async for chunk in streamer:
+
+exceptions.BodyError: is_body error: wreq::Error { kind: Body, source: TimedOut }
+
+2026-02-25 07:39:46.430 | ERROR    | app.processors.claude_ai.pipeline:process:78 - Pipeline processing failed: is_timeout error: wreq::Error { kind: Request, uri: https://api.anthropic.com/v1/messages,⁠ source: TimedOut }
