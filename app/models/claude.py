@@ -197,10 +197,10 @@ class MessagesAPIRequest(BaseModel):
 
     @model_validator(mode="after")
     def validate_thinking_tokens(self) -> "MessagesAPIRequest":
-        """Ensure max_tokens > thinking.budget_tokens when thinking is enabled."""
+        """Ensure max_tokens > thinking.budget_tokens when thinking is enabled or adaptive."""
         if (
             self.thinking
-            and self.thinking.type == "enabled"
+            and self.thinking.type in ("enabled", "adaptive")
             and self.thinking.budget_tokens is not None
             and self.max_tokens <= self.thinking.budget_tokens
         ):
