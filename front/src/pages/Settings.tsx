@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Key, RefreshCw, Sliders, Globe, Shield, Check, AlertCircle, Loader2, Trash2, Copy, Eye, EyeOff, Timer } from 'lucide-react'
+import { Key, RefreshCw, Sliders, Globe, Shield, Check, AlertCircle, Loader2, Trash2, Copy, Eye, EyeOff, Timer, Cpu, RotateCcw, Plus } from 'lucide-react'
 import type { SettingsRead, SettingsUpdate } from '../api/types'
 import { settingsApi } from '../api/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -34,6 +34,7 @@ export function Settings() {
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
     const [newApiKey, setNewApiKey] = useState('')
     const [newAdminKey, setNewAdminKey] = useState('')
+    const [newModel, setNewModel] = useState('')
     const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set())
     const [copiedKeys, setCopiedKeys] = useState<Set<string>>(new Set())
     const isMobile = useIsMobile()
@@ -162,6 +163,49 @@ export function Settings() {
         } else {
             setNewAdminKey(key)
         }
+    }
+
+    const handleAddModel = async () => {
+        if (!settings || !newModel) return
+        const trimmed = newModel.trim()
+        if (!trimmed || trimmed.includes(',')) return
+        if (settings.available_models.includes(trimmed)) {
+            toast.error(t('settings.modelAlreadyExists'))
+            return
+        }
+        const newSettings = {
+            ...settings,
+            available_models: [...settings.available_models, trimmed],
+        }
+        await handleFieldChange(newSettings)
+        setNewModel('')
+    }
+
+    const handleRemoveModel = async (model: string) => {
+        if (!settings) return
+        const newSettings = {
+            ...settings,
+            available_models: settings.available_models.filter(m => m !== model),
+        }
+        await handleFieldChange(newSettings)
+    }
+
+    const handleResetModels = async () => {
+        if (!settings) return
+        const defaultModels = [
+            'claude-haiku-4-5-20251001',
+            'claude-opus-4-5-20251101',
+            'claude-opus-4-1-20250805',
+            'claude-sonnet-4-5-20250929',
+            'claude-opus-4-20250514',
+            'claude-sonnet-4-20250514',
+            'claude-sonnet-4-6',
+            'claude-3-5-haiku-20241022',
+            'claude-opus-4-6',
+            'claude-3-7-sonnet-20250219',
+        ]
+        const newSettings = { ...settings, available_models: defaultModels }
+        await handleFieldChange(newSettings)
     }
 
     const toggleKeyVisibility = (key: string) => {
@@ -584,6 +628,80 @@ export function Settings() {
                                 onBlur={() => handleFieldChange(settings)}
                             />
                             <p className='text-xs text-muted-foreground'>{t('settings.requestRetryIntervalDesc')}</p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Available Models */}
+            <Card>
+                <CardHeader>
+                    <div className='flex items-center justify-between'>
+                        <div>
+                            <CardTitle className='flex items-center gap-2'>
+                                <Cpu className='h-5 w-5' />
+                                {t('settings.availableModels')}
+                            </CardTitle>
+                            <CardDescription>{t('settings.availableModelsDesc')}</CardDescription>
+                        </div>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant='outline' size='sm' className='gap-1'>
+                                    <RotateCcw className='h-3.5 w-3.5' />
+                                    {t('settings.resetToDefault')}
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>{t('settings.resetModelsTitle')}</AlertDialogTitle>
+                                    <AlertDialogDescription>{t('settings.resetModelsDesc')}</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleResetModels}>{t('common.done')}</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
+                </CardHeader>
+                <CardContent className='space-y-4'>
+                    {settings.available_models.length === 0 ? (
+                        <Alert>
+                            <AlertDescription>{t('settings.noModels')}</AlertDescription>
+                        </Alert>
+                    ) : (
+                        <div className='flex flex-wrap gap-2'>
+                            {settings.available_models.map(model => (
+                                <Badge key={model} variant='secondary' className='gap-1 py-1.5 px-3 text-sm'>
+                                    {model}
+                                    <button
+                                        onClick={() => handleRemoveModel(model)}
+                                        className='ml-1 hover:text-destructive transition-colors'
+                                    >
+                                        <Trash2 className='h-3 w-3' />
+                                    </button>
+                                </Badge>
+                            ))}
+                        </div>
+                    )}
+
+                    <Separator />
+
+                    <div className='space-y-2'>
+                        <Label htmlFor='new-model'>{t('settings.addNewModel')}</Label>
+                        <div className='flex flex-wrap gap-2'>
+                            <Input
+                                id='new-model'
+                                value={newModel}
+                                onChange={e => setNewModel(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && handleAddModel()}
+                                placeholder={t('settings.enterModelId')}
+                                className='font-mono flex-1 min-w-0'
+                            />
+                            <Button onClick={handleAddModel} disabled={!newModel} className='gap-1'>
+                                <Plus className='h-4 w-4' />
+                                {t('common.add')}
+                            </Button>
                         </div>
                     </div>
                 </CardContent>

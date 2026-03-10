@@ -115,7 +115,18 @@
     "requestRetries": "Request Retries",
     "requestRetriesDesc": "Number of retry attempts on failure",
     "requestRetryInterval": "Retry Interval (s)",
-    "requestRetryIntervalDesc": "Wait time between retries"
+    "requestRetryIntervalDesc": "Wait time between retries",
+    "availableModels": "Available Models",
+    "availableModelsDesc": "Configure the list of models returned by /v1/models endpoint",
+    "noModels": "No models configured. Add models to be returned by the API.",
+    "addNewModel": "Add New Model",
+    "enterModelId": "Enter model ID (e.g., claude-sonnet-4-6)",
+    "deleteModelTitle": "Delete this model?",
+    "deleteModelDesc": "This model will be removed from the /v1/models response.",
+    "modelAlreadyExists": "This model already exists in the list",
+    "resetToDefault": "Reset to Default",
+    "resetModelsTitle": "Reset models to default?",
+    "resetModelsDesc": "This will replace the current model list with the default Claude models."
   },
   "layout": {
     "dashboard": "Dashboard",

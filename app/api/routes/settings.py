@@ -39,6 +39,8 @@ class SettingsRead(BaseModel):
     oauth_token_url: str
     oauth_redirect_uri: str
 
+    available_models: List[str]
+
 
 class SettingsUpdate(BaseModel):
     """Model for updating settings."""
@@ -70,6 +72,8 @@ class SettingsUpdate(BaseModel):
     oauth_authorize_url: str | None = None
     oauth_token_url: str | None = None
     oauth_redirect_uri: str | None = None
+
+    available_models: List[str] | None = None
 
 
 router = APIRouter()

@@ -261,8 +261,26 @@ class Settings(BaseSettings):
         description="Comma-separated list of models that require max plan accounts",
     )
 
+    # Available models for /v1/models endpoint
+    available_models: List[str] | str = Field(
+        default=[
+            "claude-haiku-4-5-20251001",
+            "claude-opus-4-5-20251101",
+            "claude-opus-4-1-20250805",
+            "claude-sonnet-4-5-20250929",
+            "claude-opus-4-20250514",
+            "claude-sonnet-4-20250514",
+            "claude-sonnet-4-6",
+            "claude-3-5-haiku-20241022",
+            "claude-opus-4-6",
+            "claude-3-7-sonnet-20250219",
+        ],
+        env="AVAILABLE_MODELS",
+        description="List of models returned by /v1/models endpoint",
+    )
+
     @field_validator(
-        "api_keys", "admin_api_keys", "cookies", "max_models", "pad_tokens"
+        "api_keys", "admin_api_keys", "cookies", "max_models", "pad_tokens", "available_models"
     )
     def parse_comma_separated(cls, v: str | List[str]) -> List[str]:
         """Parse comma-separated string."""

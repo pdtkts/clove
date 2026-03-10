@@ -115,7 +115,18 @@
     "requestRetries": "请求重试次数",
     "requestRetriesDesc": "失败后的重试次数",
     "requestRetryInterval": "重试间隔 (秒)",
-    "requestRetryIntervalDesc": "重试之间的等待时间"
+    "requestRetryIntervalDesc": "重试之间的等待时间",
+    "availableModels": "可用模型",
+    "availableModelsDesc": "配置 /v1/models 端点返回的模型列表",
+    "noModels": "暂无模型配置。请添加 API 返回的模型。",
+    "addNewModel": "添加新模型",
+    "enterModelId": "输入模型 ID（例如 claude-sonnet-4-6）",
+    "deleteModelTitle": "确定删除此模型？",
+    "deleteModelDesc": "此模型将从 /v1/models 响应中移除。",
+    "modelAlreadyExists": "此模型已存在于列表中",
+    "resetToDefault": "恢复默认",
+    "resetModelsTitle": "恢复默认模型列表？",
+    "resetModelsDesc": "这将用默认的 Claude 模型列表替换当前列表。"
   },
   "layout": {
     "dashboard": "仪表板",

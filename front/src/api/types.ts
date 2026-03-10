@@ -64,6 +64,7 @@ export interface SettingsRead {
     oauth_authorize_url: string
     oauth_token_url: string
     oauth_redirect_uri: string
+    available_models: string[]
 }
 
 export interface SettingsUpdate {
@@ -88,6 +89,7 @@ export interface SettingsUpdate {
     oauth_authorize_url?: string
     oauth_token_url?: string
     oauth_redirect_uri?: string
+    available_models?: string[]
 }
 
 export interface ApiError {
