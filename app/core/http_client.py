@@ -148,7 +148,17 @@ if RNET_AVAILABLE:
             return self._response.status.as_int()
 
         async def json(self) -> Any:
-            return await self._response.json()
+            try:
+                return await self._response.json()
+            except Exception:
+                # Response body empty or not valid JSON — read raw text for caller
+                try:
+                    text = await self._response.text()
+                except Exception:
+                    text = ""
+                raise ValueError(
+                    f"Failed to decode JSON from response (body: {text[:500]!r})"
+                )
 
         @property
         def headers(self) -> Dict[str, str]:

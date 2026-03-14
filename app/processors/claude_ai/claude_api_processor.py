@@ -194,7 +194,20 @@ class ClaudeAPIProcessor(BaseProcessor):
                 raise ClaudeRateLimitedError(resets_at=resets_at_dt)
 
             if response.status_code >= 400:
-                error_data = await response.json()
+                try:
+                    error_data = await response.json()
+                except Exception as json_err:
+                    await session.close()
+                    logger.error(
+                        f"Claude API error: {response.status_code} "
+                        f"(failed to parse error body: {json_err})"
+                    )
+                    raise ClaudeHttpError(
+                        url=self.messages_api_url,
+                        status_code=response.status_code,
+                        error_type="decode_error",
+                        error_message=f"API returned {response.status_code} with non-JSON body",
+                    )
                 await session.close()
 
                 if (
