@@ -414,8 +414,7 @@ class AccountManager:
 
         # Both refresh and cookie re-auth failed — degrade account
         if account.auth_type == AuthType.BOTH:
-            account.auth_type = AuthType.COOKIE_ONLY
-            account.oauth_token = None
+            account._downgrade_to_cookie_only(reason="OAuth refresh + cookie re-auth both failed")
         else:
             account.status = AccountStatus.INVALID
             logger.error(

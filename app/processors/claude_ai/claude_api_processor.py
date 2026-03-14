@@ -3,6 +3,7 @@ from app.core.http_client import (
     AsyncSession,
     create_session,
 )
+import asyncio
 from datetime import datetime, timedelta, UTC
 from typing import Dict, Optional
 from loguru import logger
@@ -152,12 +153,18 @@ class ClaudeAPIProcessor(BaseProcessor):
         context: ClaudeAIContext,
     ) -> tuple[Response, AsyncSession]:
         """
-        Execute API request with retry on 401 authentication error.
-        
-        If a 401 error occurs with "Invalid authentication credentials",
-        try to re-authenticate using the cookie and retry once.
+        Execute API request with retry on authentication errors and transient server errors.
+
+        Retry strategies:
+        - Auth errors (401/403): Re-authenticate with cookie, retry once.
+        - Server errors (502/503/529): Retry up to settings.retry_attempts times
+          with settings.retry_interval seconds between attempts.
         """
-        retried = False
+        retried_auth = False
+        server_error_retries = 0
+        max_server_retries = settings.retry_attempts
+        # Transient server errors worth retrying (upstream down, overloaded, rate limited by CDN)
+        transient_status_codes = (502, 503, 529)
 
         while True:
             headers = self._prepare_headers(
@@ -202,6 +209,42 @@ class ClaudeAPIProcessor(BaseProcessor):
                         f"Claude API error: {response.status_code} "
                         f"(failed to parse error body: {json_err})"
                     )
+
+                    # Retry transient server errors (502/503/529) with backoff
+                    if (
+                        response.status_code in transient_status_codes
+                        and server_error_retries < max_server_retries
+                    ):
+                        server_error_retries += 1
+                        wait_time = settings.retry_interval * server_error_retries
+                        logger.warning(
+                            f"Transient {response.status_code} error, "
+                            f"retrying in {wait_time}s "
+                            f"(attempt {server_error_retries}/{max_server_retries})"
+                        )
+                        await asyncio.sleep(wait_time)
+                        continue
+
+                    # For 401/403 with non-JSON body, attempt cookie re-auth
+                    # before raising error (empty body 403 = likely token revoked)
+                    if (
+                        response.status_code in (401, 403)
+                        and not retried_auth
+                        and account.cookie_value
+                    ):
+                        logger.warning(
+                            f"{response.status_code} error with non-JSON body "
+                            f"for account {account.organization_uuid[:8]}..., "
+                            "attempting re-authentication with cookie"
+                        )
+                        success = await self._try_reauthenticate_account(account)
+                        if success:
+                            logger.info(
+                                f"Re-authentication successful for account {account.organization_uuid[:8]}..., retrying request"
+                            )
+                            retried_auth = True
+                            continue
+
                     raise ClaudeHttpError(
                         url=self.messages_api_url,
                         status_code=response.status_code,
@@ -209,6 +252,21 @@ class ClaudeAPIProcessor(BaseProcessor):
                         error_message=f"API returned {response.status_code} with non-JSON body",
                     )
                 await session.close()
+
+                # Retry transient server errors with JSON body (502/503/529)
+                if (
+                    response.status_code in transient_status_codes
+                    and server_error_retries < max_server_retries
+                ):
+                    server_error_retries += 1
+                    wait_time = settings.retry_interval * server_error_retries
+                    logger.warning(
+                        f"Transient {response.status_code} error, "
+                        f"retrying in {wait_time}s "
+                        f"(attempt {server_error_retries}/{max_server_retries})"
+                    )
+                    await asyncio.sleep(wait_time)
+                    continue
 
                 if (
                     response.status_code == 400
@@ -237,7 +295,7 @@ class ClaudeAPIProcessor(BaseProcessor):
 
                 if (
                     (is_auth_error or is_token_revoked)
-                    and not retried
+                    and not retried_auth
                     and account.cookie_value
                 ):
                     logger.warning(
@@ -251,7 +309,7 @@ class ClaudeAPIProcessor(BaseProcessor):
                         logger.info(
                             f"Re-authentication successful for account {account.organization_uuid[:8]}..., retrying request"
                         )
-                        retried = True
+                        retried_auth = True
                         continue
                     else:
                         logger.error(

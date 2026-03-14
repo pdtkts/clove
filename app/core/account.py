@@ -3,6 +3,7 @@ from enum import Enum
 from datetime import datetime
 from dataclasses import dataclass
 
+from loguru import logger
 from app.core.exceptions import (
     ClaudeAuthenticationError,
     ClaudeHttpError,
@@ -109,8 +110,12 @@ class Account:
             exc_val, OAuthAuthenticationNotAllowedError
         ):
             if self.auth_type == AuthType.BOTH:
-                self.auth_type = AuthType.COOKIE_ONLY
+                self._downgrade_to_cookie_only(reason="OAuthAuthenticationNotAllowed")
             else:
+                logger.warning(
+                    f"Account {self.organization_uuid[:8]}... marked INVALID: "
+                    f"OAuthAuthenticationNotAllowed, auth_type={self.auth_type.value}"
+                )
                 self.status = AccountStatus.INVALID
             self.save()
 
@@ -120,9 +125,14 @@ class Account:
             status_code = exc_val.context.get("status_code")
             if status_code in (401, 403):
                 if self.auth_type == AuthType.BOTH:
-                    self.auth_type = AuthType.COOKIE_ONLY
-                    self.oauth_token = None
+                    self._downgrade_to_cookie_only(
+                        reason=f"ClaudeHttpError {status_code}"
+                    )
                 else:
+                    logger.warning(
+                        f"Account {self.organization_uuid[:8]}... marked INVALID: "
+                        f"ClaudeHttpError {status_code}, auth_type={self.auth_type.value}"
+                    )
                     self.status = AccountStatus.INVALID
                 self.save()
 
@@ -132,6 +142,39 @@ class Account:
         from app.services.account import account_manager
 
         account_manager.save_accounts()
+
+    def _downgrade_to_cookie_only(self, reason: str = "unknown") -> None:
+        """Downgrade auth_type to COOKIE_ONLY and reset preferred_auth to prevent dead-state.
+
+        When downgrading from BOTH/OAUTH_ONLY to COOKIE_ONLY, preferred_auth must
+        also be reset to AUTO. Otherwise, if preferred_auth remains OAUTH, the account
+        becomes unreachable: OAuth selector skips it (not OAUTH_ONLY/BOTH) and web
+        selector skips it (preferred_auth=OAUTH).
+        """
+        if not self.cookie_value:
+            logger.warning(
+                f"Account {self.organization_uuid[:8]}... has no cookie, "
+                "marking INVALID instead of downgrading"
+            )
+            self.status = AccountStatus.INVALID
+            return
+
+        prev_auth_type = self.auth_type.value
+        prev_preferred = self.preferred_auth.value
+
+        self.auth_type = AuthType.COOKIE_ONLY
+        self.oauth_token = None
+
+        # Prevent dead-state: reset preferred_auth so web selector can pick this account
+        if self.preferred_auth == PreferredAuthMethod.OAUTH:
+            self.preferred_auth = PreferredAuthMethod.AUTO
+
+        logger.info(
+            f"Account {self.organization_uuid[:8]}... downgraded: "
+            f"auth_type {prev_auth_type}→{self.auth_type.value}, "
+            f"preferred_auth {prev_preferred}→{self.preferred_auth.value}, "
+            f"reason={reason}"
+        )
 
     def to_dict(self) -> dict:
         """Convert Account to dictionary for JSON serialization."""
