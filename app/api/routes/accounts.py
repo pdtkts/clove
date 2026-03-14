@@ -123,7 +123,7 @@ async def create_account(account_data: AccountCreate, _: AdminAuthDep):
     account = await account_manager.add_account(
         cookie_value=account_data.cookie_value,
         oauth_token=oauth_token,
-        organization_uuid=str(account_data.organization_uuid),
+        organization_uuid=str(account_data.organization_uuid) if account_data.organization_uuid else None,
         capabilities=account_data.capabilities,
     )
 

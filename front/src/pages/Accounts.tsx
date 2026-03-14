@@ -15,6 +15,7 @@ import {
     KeyRound,
     FileText,
     RefreshCw,
+    Settings2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { AccountResponse } from '../api/types'
@@ -22,6 +23,7 @@ import { accountsApi } from '../api/client'
 import { AccountModal } from '../components/AccountModal'
 import { OAuthModal } from '../components/OAuthModal'
 import { BatchCookieModal } from '../components/BatchCookieModal'
+import { PreferredAuthModal } from '../components/PreferredAuthModal'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -48,6 +50,7 @@ export function Accounts() {
     const [oauthModalOpen, setOauthModalOpen] = useState(false)
     const [batchModalOpen, setBatchModalOpen] = useState(false)
     const [editingAccount, setEditingAccount] = useState<AccountResponse | null>(null)
+    const [preferredAuthAccount, setPreferredAuthAccount] = useState<AccountResponse | null>(null)
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [accountToDelete, setAccountToDelete] = useState<string | null>(null)
     const [reauthenticating, setReauthenticating] = useState<Set<string>>(new Set())
@@ -128,6 +131,11 @@ export function Accounts() {
         loadAccounts()
     }
 
+    const handlePreferredAuthModalClose = () => {
+        setPreferredAuthAccount(null)
+        loadAccounts()
+    }
+
     const toggleCardExpansion = (uuid: string) => {
         setExpandedCards(prev => {
             const next = new Set(prev)
@@ -161,6 +169,20 @@ export function Accounts() {
             default:
                 return authType
         }
+    }
+
+    const getPreferredAuthBadge = (account: AccountResponse) => {
+        if (account.auth_type !== 'both' || account.preferred_auth === 'auto') {
+            return null
+        }
+        const label = account.preferred_auth === 'oauth'
+            ? t('accountModal.authOAuthOnly')
+            : t('accountModal.authWebOnly')
+        return (
+            <Badge variant='outline' className='text-[10px] px-1.5 py-0 h-4'>
+                {label}
+            </Badge>
+        )
     }
 
     const getStatusIcon = (status: string) => {
@@ -227,6 +249,7 @@ export function Accounts() {
                                     <div className='flex items-center gap-2 text-sm text-muted-foreground'>
                                         {getAuthTypeIcon(account.auth_type)}
                                         <span>{getAuthTypeName(account.auth_type)}</span>
+                                        {getPreferredAuthBadge(account)}
                                     </div>
                                     <p className='font-mono text-xs text-muted-foreground truncate'>
                                         {account.organization_uuid}
@@ -252,11 +275,17 @@ export function Accounts() {
                                     <span>{account.resets_at ? new Date(account.resets_at).toLocaleString(dateLocale) : '-'}</span>
                                 </div>
                             </div>
-                            <div className='flex gap-2 pt-2'>
+                            <div className='flex flex-wrap gap-2 pt-2'>
                                 <Button size='sm' variant='outline' className='flex-1' onClick={() => handleEdit(account)}>
                                     <Pencil className='mr-2 h-4 w-4' />
                                     {t('common.edit')}
                                 </Button>
+                                {account.auth_type === 'both' && (
+                                    <Button size='sm' variant='outline' className='flex-1' onClick={() => setPreferredAuthAccount(account)}>
+                                        <Settings2 className='mr-2 h-4 w-4' />
+                                        {t('accountModal.preferredAuth')}
+                                    </Button>
+                                )}
                                 {account.cookie_value && (
                                     <Button
                                         size='sm'
@@ -472,6 +501,7 @@ export function Accounts() {
                                             <div className='flex items-center gap-2'>
                                                 {getAuthTypeIcon(account.auth_type)}
                                                 <span>{getAuthTypeName(account.auth_type)}</span>
+                                                {getPreferredAuthBadge(account)}
                                             </div>
                                         </TableCell>
                                         <TableCell>
@@ -511,6 +541,12 @@ export function Accounts() {
                                                             {reauthenticating.has(account.organization_uuid)
                                                                 ? t('accounts.reauthenticating')
                                                                 : t('accounts.reauthenticate')}
+                                                        </DropdownMenuItem>
+                                                    )}
+                                                    {account.auth_type === 'both' && (
+                                                        <DropdownMenuItem onClick={() => setPreferredAuthAccount(account)}>
+                                                            <Settings2 className='mr-2 h-4 w-4' />
+                                                            {t('accountModal.preferredAuth')}
                                                         </DropdownMenuItem>
                                                     )}
                                                     <DropdownMenuItem
@@ -563,6 +599,7 @@ export function Accounts() {
             {modalOpen && <AccountModal account={editingAccount} onClose={handleModalClose} />}
             {oauthModalOpen && <OAuthModal onClose={handleOAuthModalClose} />}
             {batchModalOpen && <BatchCookieModal onClose={handleBatchModalClose} />}
+            {preferredAuthAccount && <PreferredAuthModal account={preferredAuthAccount} onClose={handlePreferredAuthModalClose} />}
         </div>
     )
 }
